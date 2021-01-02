@@ -1,7 +1,7 @@
 import copy
 import random
 
-
+#We keep classes of all the diffrenet parts of the queries in order to make it easeir to manipulate the query
 class PI:
     attributesList = []
     name = "PI"
@@ -9,13 +9,11 @@ class PI:
     def __init__(self):
         self.attributesList = []
 
-
 class Sigma:
     conditionsList = []
     name = "Sigma"
     def __init__(self):
         self.conditionsList = []
-
 
 class Cartesian:
     firstTable = []
@@ -28,7 +26,6 @@ class Cartesian:
         self.firstTable = []
         self.secondTable = []
         isNjoin = False
-
 
 class Njoin:
     firstTable = []
@@ -45,6 +42,8 @@ def swapAndWithComma(sigma) -> str:
 
 
 def cleanCondition(condition) -> str:
+    #We swap all the relation operators with comma, so it is easier to split a condition string
+    #According to different rel ops
     condition = condition.replace("OR", ",")
     condition = condition.replace("AND", ",")
     condition = condition.replace(">=", ",")
@@ -58,7 +57,7 @@ def cleanCondition(condition) -> str:
 def makeAttributesFromSigmas(sigma, tableR, tableS) -> list:
     attributes = []
     for condition in sigma.conditionsList:
-        condition = cleanCondition(condition)
+        condition = cleanCondition(condition) 
         sigmaAttributes = condition.split(",")
         for attribute in sigmaAttributes:
             attribute = attribute.strip()
@@ -242,7 +241,8 @@ def canExecuteRule11b(algebricExpression) -> bool:
             if i + 1 < len(algebricExpression):
                 if type(algebricExpression[i + 1]) is Cartesian:
                     if isTheRightConditionFor11b(algebricExpression[i].conditionsList):
-                        algebricExpression.pop(i) # We are taking out the sigma with the condition, it is no longer needed
+                        # We are taking out the sigma with the condition, it is no longer needed
+                        algebricExpression.pop(i) 
                         return True
 
     return False
@@ -266,12 +266,14 @@ def rule4(algebricExpression) -> None:
 def rule4a(algebricExpression) -> None:
     for item in algebricExpression:
         if type(item) is Sigma:
-            if len(item.conditionsList) > 1:
+            #If we have two different conditions in a sigma condition list meaning it is a sigma inside a sigma
+            if len(item.conditionsList) > 1: 
+                #We swap the conditions, meaning we swaped the order of who within who
                 item.conditionsList[0], item.conditionsList[1] = item.conditionsList[1], item.conditionsList[0]
                 return
 
-
 def isOnlyRCondition(condition, tableR, tableS) -> bool:
+    #This function check if there is only R related conditions in the string
     condition = cleanCondition(condition)
     leftIndex = 0
     rightIndex = 1
@@ -287,6 +289,7 @@ def isOnlyRCondition(condition, tableR, tableS) -> bool:
 
 
 def isOnlySCondition(condition, tableR, tableS) -> bool:
+    #This function check if there is only S related conditions in the string
     condition = cleanCondition(condition)
     leftIndex = 0
     rightIndex = 1
@@ -353,51 +356,14 @@ def rule11b(algebricExpression) -> None:
             item.isNjoin = True
             item.name = "Njoin"
 
-
-def printAlgebricExpressionItem(item) -> None:
-    if type(item) is PI:
-        print("PI[", end="")
-        for element in item.attributesList[0:-1]:
-            print(element.strip(" ") + ",", end="")
-        print(item.attributesList[-1].strip() + "]" + "(", end="")
-    elif type(item) is Sigma:
-        print("SIGMA[", end="")
-        print(item.conditionsList[0].strip() + "]" + "(", end="")
-        for element in item.conditionsList[1:-1]:
-            print("SIGMA[", end="")
-            print(element.strip() + "]" + "(", end="")
-        if len(item.conditionsList) > 1:
-            print("SIGMA[", end="")
-            print(item.conditionsList[-1].strip() + "]" + "(", end="")
-    elif type(item) is str:
-        print(item.strip(), end="")
-
-
-def printAlgebricExpression(algebricExpression) -> None:
-    for item in algebricExpression:
-        if type(item) is Cartesian:
-            if (item.isNjoin):
-                print("NJOIN(", end="")
-            else:
-                print("CARTESIAN(", end="")
-            for cartesianItem in item.firstTable:
-                printAlgebricExpressionItem(cartesianItem)
-            print(",", end="")
-            for cartesianItem in item.secondTable:
-                printAlgebricExpressionItem(cartesianItem)
-        else:
-            printAlgebricExpressionItem(item)
-    print(")" * len(algebricExpression))
-
-
 def runRulesRandomly(algebricExpression, tableR, tableS):
     queries = [copy.deepcopy(algebricExpression),copy.deepcopy(algebricExpression),
                copy.deepcopy(algebricExpression),copy.deepcopy(algebricExpression)]
-    for j in range(0,4):
+    for j in range(0,4): #We run 4 rounds in order to calculate 4 different queries
         print("=================")
         print("Logical query #" + str(j+1))
         print("=================", end="\n\n")
-        for i in range(10):
+        for i in range(10): #For each query we raffle 10 rules to execute on the query
             print("Round #" + str(i+1))
             print("-----------", end="\n")
             number = random.randint(1, 6)
@@ -443,11 +409,14 @@ def runRulesRandomly(algebricExpression, tableR, tableS):
     return queries
 
 def getDataFromFile():
-    data = {
+    #We scan for the data from the statistics file
+    data = { 
         'R': {'n_R': int, 'R_R': int, 'V(A)': int, 'V(B)': int, 'V(C)': int, 'V(D)': int, 'V(E)': int},
         'S': {'n_S': int, 'R_S': int, 'V(D)': int, 'V(E)': int, 'V(F)': int, 'V(H)': int, 'V(I)': int}
     }
+
     file = open("statistics.txt", 'r')
+
     for line in file:
         if line == "Scheme R\n":
             table = "R"
@@ -468,6 +437,60 @@ def getDataFromFile():
     file.close()
     return data
 
+def piCalculator(lastArg, sum2, data):
+    retSum = {'n_Scheme': sum2['n_Scheme'], 'R_Scheme': int}
+    retSum['R_Scheme'] = len(lastArg.attributesList)*4
+
+    return retSum
+
+
+def calculateSimpleCondition(condition, data):
+    index = condition.find("=")
+    firstProb = 0
+    if index != -1:
+        firstArg = condition[:index]
+        secondArg = condition[index + 1:]
+        indexOfPoint = firstArg.find(".")
+        if indexOfPoint != -1:
+            listOfStrings = firstArg.split('.')
+            first1 = listOfStrings[0]
+            second1 = listOfStrings[1]
+            second1 = "V(" + second1 + ")"
+            numOfDifferentValues1 = data.get(first1).get(second1)
+            firstProb = 1.0 / numOfDifferentValues1
+
+        indexOfPoint = secondArg.find(".")
+        if indexOfPoint != -1:
+            listOfStrings = firstArg.split('.')
+            first2 = listOfStrings[0]
+            second2 = listOfStrings[1]
+            second2 = "V(" + second2 + ")"
+            numOfDifferentValues2 = data.get(first2).get(second2)
+            secondProb = 1.0 / numOfDifferentValues2
+            if numOfDifferentValues1 > numOfDifferentValues2:
+                return firstProb
+            else:
+                return secondProb
+        else:
+            return firstProb
+
+def calculateConditions(sigma, data):
+    conditions = makeConditionsFromSigmas(sigma)
+    conditions[0] = conditions[0].replace("(","")
+    conditions[0] = conditions[0].replace(")","")
+    res = calculateSimpleCondition(conditions[0],data)
+    for condition in conditions[1:]:
+        condition = condition.replace("(", "")
+        condition = condition.replace(")", "")
+        res *= calculateSimpleCondition(condition,data)
+    return res
+
+
+def sigmaCalculator(sigma, sum1, data):
+    result = calculateConditions(sigma, data)
+    return int(result * sum1)
+
+
 def cartesianCalculator(cartesian, data):
     sumToReturn = {'n_Scheme': None, 'R_Scheme': None}
     res1 = -1
@@ -475,14 +498,14 @@ def cartesianCalculator(cartesian, data):
 
     if isinstance(cartesian.firstTable[0], Sigma):
         if "R" in cartesian.firstTable:
-            res1 = CalculateSigma(cartesian.firstTable[0].conditionsList, data.get("R")["n_R"], data)
+            res1 = sigmaCalculator(cartesian.firstTable[0].conditionsList, data.get("R")["n_R"], data)
         else:
-            res1 = CalculateSigma(cartesian.firstTable[0].conditionsList, data.get("S")["n_S"], data)
+            res1 = sigmaCalculator(cartesian.firstTable[0].conditionsList, data.get("S")["n_S"], data)
     if isinstance(cartesian.secondTable[0], Sigma):
         if "R" in cartesian.secondTable:
-            res2 = CalculateSigma(cartesian.secondTable[0].conditionsList, data.get("R")["n_R"], data)
+            res2 = sigmaCalculator(cartesian.secondTable[0].conditionsList, data.get("R")["n_R"], data)
         else:
-            res2 = CalculateSigma(cartesian.secondTable[0].conditionsList, data.get("S")["n_S"], data)
+            res2 = sigmaCalculator(cartesian.secondTable[0].conditionsList, data.get("S")["n_S"], data)
     if res1 != -1:
         if res2 != -1:  # In this case there are two sigmas in the cartesian
             sumToReturn['n_Scheme'] = res1 * res2
@@ -530,14 +553,14 @@ def NjoinCalculator(nJoin, data):
 
     if isinstance(nJoin.firstTable[0], Sigma):
         if "R" in nJoin.firstTable:
-            result1 = CalculateSigma(nJoin.firstTable[0].conditionsList, data.get("R")["n_R"], data)
+            result1 = sigmaCalculator(nJoin.firstTable[0].conditionsList, data.get("R")["n_R"], data)
         else:
-            result1 = CalculateSigma(nJoin.firstTable[0].conditionsList, data.get("S")["n_S"], data)
+            result1 = sigmaCalculator(nJoin.firstTable[0].conditionsList, data.get("S")["n_S"], data)
     if isinstance(nJoin.secondTable[0], Sigma):
         if "R" in nJoin.secondTable:
-            result2 = CalculateSigma(nJoin.secondTable[0].conditionsList, data.get("R")["n_R"], data)
+            result2 = sigmaCalculator(nJoin.secondTable[0].conditionsList, data.get("R")["n_R"], data)
         else:
-            result2 = CalculateSigma(nJoin.secondTable[0].conditionsList, data.get("S")["n_S"], data)
+            result2 = sigmaCalculator(nJoin.secondTable[0].conditionsList, data.get("S")["n_S"], data)
     if result1 != -1:
         if result2 != -1:  # In this case there are two sigmas in the cartesian
             sumToReturn['n_Scheme'] = int((1/result1 * 1/result2) * tableSize)
@@ -557,83 +580,31 @@ def NjoinCalculator(nJoin, data):
             sumToReturn['R_Scheme'] = int(data.get('R').get('R_R') + data.get('S').get('R_S'))
             return sumToReturn
 
-def CalculateSigmaConditions(sigma, data):
-    conditions = makeConditionsFromSigmas(sigma)
-    conditions[0] = conditions[0].replace("(","")
-    conditions[0] = conditions[0].replace(")","")
-    result = CalculateSimpleCondition(conditions[0],data)
-    for condition in conditions[1:]:
-        condition = condition.replace("(", "")
-        condition = condition.replace(")", "")
-        result *= CalculateSimpleCondition(condition,data)
-    return result
 
-def CalculateSigma(sigma, sum1, data):
-    result = CalculateSigmaConditions(sigma, data)
-    return int(result * sum1)
+def printPiSum(lastArg, iSum, oSum):
+    print(lastArg.name)
+    print("\tInput: n_Scheme = " + str(iSum['n_Scheme']) + ' R_Scheme = ' + str(iSum['R_Scheme']))
+    print("\tOutput: n_Scheme = " + str(oSum['n_Scheme']) + ' R_Scheme = ' + str(oSum['R_Scheme']))
 
+def printSigmaSum(lastArg, iSum, oSum):
+    print(lastArg.name)
+    print("\tInput: n_Scheme = " + str(iSum['n_Scheme']) + ' R_Scheme = ' + str(iSum['R_Scheme']))
+    print("\tOutput: n_Scheme = " + str(oSum['n_Scheme']) + ' R_Scheme = ' + str(oSum['R_Scheme']))
 
-def CalculatePi(lastArg, sum2, data):
-    sumToReturn = {'n_Scheme': sum2['n_Scheme'], 'R_Scheme': int}
-    sumToReturn['R_Scheme'] = 4* len(lastArg.attributesList)
-
-    return sumToReturn
-
-
-def PrintSumOfQueryCartesian(sumToPrint, argumentToPrint, data):
-    print(argumentToPrint.name)
+def printCartesianSum(sum, argument, data):
+    print(argument.name)
     print(
         "\tInput: n_R = " + str(data.get("R")["n_R"]) + ", n_S =" + str(data.get("S")["n_S"]) + ", R_R = " + str(data.get("R")["R_R"])
         + ", R_S = " + str(data.get("S")["R_S"]))
-    print("\tOutput: n_Scheme = " + str(sumToPrint['n_Scheme']) + ' R_Scheme = ' + str(sumToPrint['R_Scheme']))
+    print("\tOutput: n_Scheme = " + str(sum['n_Scheme']) + ' R_Scheme = ' + str(sum['R_Scheme']))
 
-
-def PrintSumOfQuerySigma(lastArg, sumInput, sumOutput):
-    print(lastArg.name)
-    print("\tInput: n_Scheme = " + str(sumInput['n_Scheme']) + ' R_Scheme = ' + str(sumInput['R_Scheme']))
-    print("\tOutput: n_Scheme = " + str(sumOutput['n_Scheme']) + ' R_Scheme = ' + str(sumOutput['R_Scheme']))
-
-def PrintSumOfQueryPi(lastArg, sumInput, sumOutput):
-    print(lastArg.name)
-    print("\tInput: n_Scheme = " + str(sumInput['n_Scheme']) + ' R_Scheme = ' + str(sumInput['R_Scheme']))
-    print("\tOutput: n_Scheme = " + str(sumOutput['n_Scheme']) + ' R_Scheme = ' + str(sumOutput['R_Scheme']))
-
-def CalculateSimpleCondition(condition, data):
-    index = condition.find("=")
-    prob1 = 0
-    if index != -1:
-        arg1 = condition[:index]
-        arg2 = condition[index + 1:]
-        indexOfPoint = arg1.find(".")
-        if indexOfPoint != -1:
-            listOfStrings = arg1.split('.')
-            first1 = listOfStrings[0]
-            second1 = listOfStrings[1]
-            second1 = "V(" + second1 + ")"
-            numberOfDifferentValues1 = data.get(first1).get(second1)
-            prob1 = 1 / numberOfDifferentValues1
-
-        indexOfPoint = arg2.find(".")
-        if indexOfPoint != -1:
-            listOfStrings = arg1.split('.')
-            first2 = listOfStrings[0]
-            second2 = listOfStrings[1]
-            second2 = "V(" + second2 + ")"
-            numberOfDifferentValues2 = data.get(first2).get(second2)
-            prob2 = 1 / numberOfDifferentValues2
-            if numberOfDifferentValues1 > numberOfDifferentValues2:
-                return prob1
-            else:
-                return prob2
-        else:
-            return prob1
 
 def CalculateQuery(queriesList):
     data = getDataFromFile()
-
     sum1 = {'n_Scheme': None, 'R_Scheme': None}
     sum2 = {'n_Scheme': None, 'R_Scheme': None}
     sum3 = {'n_Scheme': None, 'R_Scheme': None}
+
     while len(queriesList) != 0:
         query = queriesList.pop()
         while len(query) != 0:
@@ -642,35 +613,125 @@ def CalculateQuery(queriesList):
                 if(not lastArg.isNjoin):
                     sum1 = cartesianCalculator(lastArg, data)
                     if sum1["n_Scheme"] is not None:
-                        PrintSumOfQueryCartesian(sum1, lastArg, data)
+                        printCartesianSum(sum1, lastArg, data)
                 else:
                     sum1 = NjoinCalculator(lastArg, data)
                     if sum1["n_Scheme"] is not None:
-                        PrintSumOfQueryCartesian(sum1, lastArg, data)
+                        printCartesianSum(sum1, lastArg, data)
             elif isinstance(lastArg, Sigma):
                 if sum1["n_Scheme"] is not None:
-                    sum2["n_Scheme"] = CalculateSigma(lastArg.conditionsList, sum1["n_Scheme"], data)
+                    sum2["n_Scheme"] = sigmaCalculator(lastArg.conditionsList, sum1["n_Scheme"], data)
                     sum2["R_Scheme"] = sum1["R_Scheme"]
-                    PrintSumOfQuerySigma(lastArg, sum1, sum2)
+                    printSigmaSum(lastArg, sum1, sum2)
             else:
                 if sum2["n_Scheme"] is not None:
-                    sum3 = CalculatePi(lastArg, sum2, data)
-                    PrintSumOfQueryPi(lastArg, sum2, sum3)
+                    sum3 = piCalculator(lastArg, sum2, data)
+                    printPiSum(lastArg, sum2, sum3)
                 else:
-                    sum3 = CalculatePi(lastArg, sum1, data)
-                    PrintSumOfQueryPi(lastArg, sum1, sum3)
+                    sum3 = piCalculator(lastArg, sum1, data)
+                    printPiSum(lastArg, sum1, sum3)
 
         print("------------------------------------")
 
+def printAlgebricExpressionItem(item) -> None:
+    if type(item) is PI:
+        print("PI[", end="")
+        for element in item.attributesList[0:-1]:
+            print(element.strip(" ") + ",", end="")
+        print(item.attributesList[-1].strip() + "]" + "(", end="")
+    elif type(item) is Sigma:
+        print("SIGMA[", end="")
+        print(item.conditionsList[0].strip() + "]" + "(", end="")
+        for element in item.conditionsList[1:-1]:
+            print("SIGMA[", end="")
+            print(element.strip() + "]" + "(", end="")
+        if len(item.conditionsList) > 1:
+            print("SIGMA[", end="")
+            print(item.conditionsList[-1].strip() + "]" + "(", end="")
+    elif type(item) is str:
+        print(item.strip(), end="")
+
+
+def printAlgebricExpression(algebricExpression) -> None:
+    for item in algebricExpression:
+        if type(item) is Cartesian:
+            if (item.isNjoin):
+                print("NJOIN(", end="")
+            else:
+                print("CARTESIAN(", end="")
+            for cartesianItem in item.firstTable:
+                printAlgebricExpressionItem(cartesianItem)
+            print(",", end="")
+            for cartesianItem in item.secondTable:
+                printAlgebricExpressionItem(cartesianItem)
+        else:
+            printAlgebricExpressionItem(item)
+    print(")" * len(algebricExpression))
+
+
+def test(algebricExpression, tableR, tableS) -> None:
+    queries = [copy.deepcopy(algebricExpression),copy.deepcopy(algebricExpression),
+               copy.deepcopy(algebricExpression),copy.deepcopy(algebricExpression)]
+    for j in range(0,4): #We run 4 rounds in order to calculate 4 different queries
+        print("=================")
+        print("Logical query #" + str(j+1))
+        print("=================", end="\n\n")
+        for i in range(10): #For each query we raffle 10 rules to execute on the query
+            print("Round #" + str(i+1))
+            print("-----------", end="\n")
+            number = i%6
+            if number == 1:
+                if canExecuteRule4(queries[j]):
+                    rule4(queries[j])
+                    print("Query after executing rule 4:")
+                else:
+                    print("Can't execute rule 4, Logical query didn't change")
+            elif number == 2:
+                if canExecuteRule4a(queries[j]):
+                    rule4a(queries[j])
+                    print("Query after executing rule 4a:")
+                else:
+                    print("Can't execute rule 4a, Logical query didn't change")
+            elif number == 3:
+                if canExecuteRule5a(queries[j], tableR, tableS):
+                    rule5a(queries[j])
+                    print("Query after executing rule 5a:")
+                else:
+                    print("Can't execute rule 5a, Logical query didn't change")
+            elif number == 4:
+                if canExecuteRule6(queries[j], tableR, tableS):
+                    rule6(queries[j],tableR,tableS)
+                    print("Query after executing rule 6:")
+                else:
+                    print("Can't execute rule 6 Logical query didn't change")
+            elif number == 5:
+                if canExecuteRule6(queries[j], tableR, tableS):
+                    rule6(queries[j],tableR,tableS)
+                    print("Query after executing rule 6a:")
+                else:
+                    print("Can't execute rule 6a, Logical query didn't change")
+            else:
+                if canExecuteRule11b(queries[j]):
+                    rule11b(queries[j])
+                    print("Query after executing rule 11b:")
+                else:
+                    print("Can't execute rule 11b, Logical query didn't change")
+            printAlgebricExpression(queries[j])
+            print("\n")
+        print("\n")
+    return queries
+
 def __main__():
+
+    #We keep all of our possible columns
     tableR = ["R.A", "R.B", "R.C", "R.D", "R.E"]
     tableS = ["S.E", "S.F", "S.G", "S.D", "S.I"]
-    selectionOptions = ["4", "4a", "5a", "6", "6a", "11b"]
 
+    #Get query from user
     sqlQuery = input("Please enter the SQL query")
     sqlQuery = sqlQuery.strip(" ")
 
-    if sqlQuery[-1] == ";":
+    if sqlQuery[-1] == ";": 
         sqlQuery = sqlQuery[0:-1]
 
     select = sqlQuery.partition(" ")[0]
@@ -699,12 +760,20 @@ def __main__():
         Cartesians.firstTable.append(cartesianBlock.split(",")[0].strip())
         Cartesians.secondTable.append(cartesianBlock.split(",")[1].strip())
 
+    #We build the algebric expression in a list
     algebricExpression = []
     algebricExpression.append(Pis)
     algebricExpression.append(Sigmas)
     algebricExpression.append(Cartesians)
 
-    queries = runRulesRandomly(algebricExpression, tableR, tableS)
+    queries = test(algebricExpression, tableR, tableS)
+    print("final result")
+    printAlgebricExpression(algebricExpression)
+    print("---------------------")
+    #We make 4 different logical queries using random rules and keep them all in a quries list
+    #queries = runRulesRandomly(algebricExpression, tableR, tableS)
+
+    #We calculate each query
     CalculateQuery(queries)
 
 
