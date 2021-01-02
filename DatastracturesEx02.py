@@ -90,6 +90,7 @@ def makeConditionsFromSigmas(Sigmas) -> list:
 
     return stripedConditions
 
+#We clear all the brackets - we have only "AND" and it is commutative
 def clearBrackets(sigma)->Sigma:
     newSigma = Sigma()
     newCondition = sigma.conditionsList[0]
