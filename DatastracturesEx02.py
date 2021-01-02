@@ -90,48 +90,24 @@ def makeConditionsFromSigmas(Sigmas) -> list:
 
     return stripedConditions
 
+def clearBrackets(sigma)->Sigma:
+    newSigma = Sigma()
+    newCondition = sigma.conditionsList[0]
+    newCondition = newCondition.replace("(", "")
+    newCondition = newCondition.replace(")", "")
+    newSigma.conditionsList.append(newCondition)
 
-def checkIfMainAnd(firstSigma, secondSigma) -> bool:
-    return str(firstSigma).count("(") == str(firstSigma).count(")") and \
-           str(secondSigma).count(")") == str(secondSigma).count("(")
+    return newSigma
 
-
-
-def deleteBracket(sigma) -> str:
-    sigma = str(sigma).strip()
-    index = -1;
-    while (str(sigma).count(")") > str(sigma).count("(")):
-        if (sigma[index] == ")"):
-            if (index == -1):
-                sigma = sigma[:index]
-            else:
-                sigma = sigma[:index] + sigma[index + 1:]
-        else:
-            index -= 1
-    index = 0
-    while (str(sigma).count(")") < str(sigma).count("(")):
-        if sigma[index] == "(":
-            sigma = sigma[:index] + sigma[index + 1:]
-        else:
-            index += 1
-    while (sigma[0] == "(" and sigma[-1] == ")"):
-        sigma = sigma[1:-1]
-        sigma = sigma.strip()
-    return sigma
-
-
+#We split the sigma by the first "AND" we find
 def splitSigmaByAND(sigma) -> list:
     tempStr = sigma
-    index = 0
-    while ("AND" in tempStr):
-        index += str(tempStr).find("AND")
-        if (checkIfMainAnd(sigma[0:index], sigma[index + 3:])):
-            sigmas = [deleteBracket(sigma[0:index]), deleteBracket(sigma[index + 3:])]
-            return sigmas
-        else:
-            index += 3
-            tempStr = tempStr[index:]
-    return None
+    index = str(tempStr).find("AND")
+    if index!=-1:
+         sigmas = [sigma[0:index], sigma[index + 3:]]
+         return sigmas
+    else: #If we couldn't find AND we return NONE (shouldn't happen because we check first we can execute this split)
+         return None
 
 
 def cleanString(mainString, substring):
@@ -765,13 +741,12 @@ def __main__():
     algebricExpression.append(Pis)
     algebricExpression.append(Sigmas)
     algebricExpression.append(Cartesians)
+    algebricExpression[1] = clearBrackets(algebricExpression[1])
 
-    queries = test(algebricExpression, tableR, tableS)
-    print("final result")
     printAlgebricExpression(algebricExpression)
     print("---------------------")
     #We make 4 different logical queries using random rules and keep them all in a quries list
-    #queries = runRulesRandomly(algebricExpression, tableR, tableS)
+    queries = runRulesRandomly(algebricExpression, tableR, tableS)
 
     #We calculate each query
     CalculateQuery(queries)
