@@ -96,13 +96,7 @@ def checkIfMainAnd(firstSigma, secondSigma) -> bool:
     return str(firstSigma).count("(") == str(firstSigma).count(")") and \
            str(secondSigma).count(")") == str(secondSigma).count("(")
 
-def clearOutSideBrackets(sigma) -> Sigma:
-    sigmaWithNoOutSideBrackets = Sigma()
-    for condition in sigma.conditionsList:
-        while(condition[0]=="(" and condition[-1]==")"):
-            condition = condition[1:-1]
-        sigmaWithNoOutSideBrackets.conditionsList.append(condition)
-    return sigmaWithNoOutSideBrackets
+
 
 def deleteBracket(sigma) -> str:
     sigma = str(sigma).strip()
@@ -448,7 +442,7 @@ def runRulesRandomly(algebricExpression, tableR, tableS):
         print("\n")
     return queries
 
-def GetDataFromFile():
+def getDataFromFile():
     data = {
         'R': {'n_R': int, 'R_R': int, 'V(A)': int, 'V(B)': int, 'V(C)': int, 'V(D)': int, 'V(E)': int},
         'S': {'n_S': int, 'R_S': int, 'V(D)': int, 'V(E)': int, 'V(F)': int, 'V(H)': int, 'V(I)': int}
@@ -474,57 +468,53 @@ def GetDataFromFile():
     file.close()
     return data
 
-def CalculateCartesian(cartesian, data):
+def cartesianCalculator(cartesian, data):
     sumToReturn = {'n_Scheme': None, 'R_Scheme': None}
-    result1 = -1
-    result2 = -1
+    res1 = -1
+    res2 = -1
 
     if isinstance(cartesian.firstTable[0], Sigma):
         if "R" in cartesian.firstTable:
-            result1 = CalculateSigma(cartesian.firstTable[0].conditionsList, data.get("R")["n_R"], data)
+            res1 = CalculateSigma(cartesian.firstTable[0].conditionsList, data.get("R")["n_R"], data)
         else:
-            result1 = CalculateSigma(cartesian.firstTable[0].conditionsList, data.get("S")["n_S"], data)
+            res1 = CalculateSigma(cartesian.firstTable[0].conditionsList, data.get("S")["n_S"], data)
     if isinstance(cartesian.secondTable[0], Sigma):
         if "R" in cartesian.secondTable:
-            result2 = CalculateSigma(cartesian.secondTable[0].conditionsList, data.get("R")["n_R"], data)
+            res2 = CalculateSigma(cartesian.secondTable[0].conditionsList, data.get("R")["n_R"], data)
         else:
-            result2 = CalculateSigma(cartesian.secondTable[0].conditionsList, data.get("S")["n_S"], data)
-    if result1 != -1:
-        if result2 != -1:
-            # two sigmas in the cartesian
-            sumToReturn['n_Scheme'] = result1 * result2
+            res2 = CalculateSigma(cartesian.secondTable[0].conditionsList, data.get("S")["n_S"], data)
+    if res1 != -1:
+        if res2 != -1:  # In this case there are two sigmas in the cartesian
+            sumToReturn['n_Scheme'] = res1 * res2
             sumToReturn['R_Scheme'] = data.get('R').get('R_R') + data.get('S').get('R_S')
             return sumToReturn
-        # only the left argument is sigma
-        else:
+        else:  #  In this case only the left argument is sigma
             if cartesian.secondTable == "S":
-                sumToReturn['n_Scheme'] = result1 * data.get('S').get('n_S')
+                sumToReturn['n_Scheme'] = res1 * data.get('S').get('n_S')
                 sumToReturn['R_Scheme'] = data.get('R').get('R_R') + data.get('S').get('R_S')
                 return sumToReturn
             else:
-                sumToReturn['n_Scheme'] = result1 * data.get('R').get('n_R')
+                sumToReturn['n_Scheme'] = res1 * data.get('R').get('n_R')
                 sumToReturn['R_Scheme'] = data.get('R').get('R_R') + data.get('S').get('R_S')
                 return sumToReturn
-    elif result1 == -1:
-        if result2 != -1:
-            # only right argument is sigma
+    elif res1 == -1:
+        if res2 != -1: # In this case only right argument is sigma
             if cartesian.firstTable[0] == "S":
-                sumToReturn['n_Scheme'] = result2 * data.get('S').get('n_S')
+                sumToReturn['n_Scheme'] = res2 * data.get('S').get('n_S')
                 sumToReturn['R_Scheme'] = data.get('R').get('R_R') + data.get('S').get('R_S')
                 return sumToReturn
             else:
-                sumToReturn['n_Scheme'] = result2 * data.get('R').get('n_R')
+                sumToReturn['n_Scheme'] = res2 * data.get('R').get('n_R')
                 sumToReturn['R_Scheme'] = data.get('R').get('R_R') + data.get('S').get('R_S')
                 return sumToReturn
-        else:
-            # two arguments are the original table
+        else:  # In this case both arguments are the original table
             sumOfArgument = data.get('R').get('n_R') * data.get('S').get('n_S')
             sumToReturn['n_Scheme'] = sumOfArgument
             sumToReturn['R_Scheme'] = data.get('R').get('R_R') + data.get('S').get('R_S')
             return sumToReturn
 
 
-def CalculateNjoin(nJoin, data):
+def NjoinCalculator(nJoin, data):
     result1 = -1
     result2 = -1
     sumToReturn = {'n_Scheme': int, 'R_Scheme': int}
@@ -549,24 +539,20 @@ def CalculateNjoin(nJoin, data):
         else:
             result2 = CalculateSigma(nJoin.secondTable[0].conditionsList, data.get("S")["n_S"], data)
     if result1 != -1:
-        if result2 != -1:
-            # two sigmas in the cartesian
+        if result2 != -1:  # In this case there are two sigmas in the cartesian
             sumToReturn['n_Scheme'] = int((1/result1 * 1/result2) * tableSize)
             sumToReturn['R_Scheme'] = int(data.get('R').get('R_R') + data.get('S').get('R_S'))
             return sumToReturn
-        # only the left argument is sigma
-        else:
+        else: #  In this case only the left argument is sigma
                 sumToReturn['n_Scheme'] = int(1/result1 * Vd * Ve * tableSize)
                 sumToReturn['R_Scheme'] = int(data.get('R').get('R_R') + data.get('S').get('R_S'))
                 return sumToReturn
     elif result1 == -1:
-        if result2 != -1:
-            # only right argument is sigma
+        if result2 != -1: # In this case only right argument is sigma
                 sumToReturn['n_Scheme'] = int(1/result2 * Vd * Ve * tableSize)
                 sumToReturn['R_Scheme'] = int(data.get('R').get('R_R') + data.get('S').get('R_S'))
                 return sumToReturn
-        else:
-            # two arguments are the original table
+        else:  # In this case two arguments are the original table
             sumToReturn['n_Scheme'] = int(Vd * Ve * tableSize)
             sumToReturn['R_Scheme'] = int(data.get('R').get('R_R') + data.get('S').get('R_S'))
             return sumToReturn
@@ -589,7 +575,6 @@ def CalculateSigma(sigma, sum1, data):
 
 def CalculatePi(lastArg, sum2, data):
     sumToReturn = {'n_Scheme': sum2['n_Scheme'], 'R_Scheme': int}
-
     sumToReturn['R_Scheme'] = 4* len(lastArg.attributesList)
 
     return sumToReturn
@@ -644,8 +629,7 @@ def CalculateSimpleCondition(condition, data):
             return prob1
 
 def CalculateQuery(queriesList):
-    data = GetDataFromFile()
-    #########################
+    data = getDataFromFile()
 
     sum1 = {'n_Scheme': None, 'R_Scheme': None}
     sum2 = {'n_Scheme': None, 'R_Scheme': None}
@@ -656,11 +640,11 @@ def CalculateQuery(queriesList):
             lastArg = query.pop()
             if isinstance(lastArg, Cartesian):
                 if(not lastArg.isNjoin):
-                    sum1 = CalculateCartesian(lastArg, data)
+                    sum1 = cartesianCalculator(lastArg, data)
                     if sum1["n_Scheme"] is not None:
                         PrintSumOfQueryCartesian(sum1, lastArg, data)
                 else:
-                    sum1 = CalculateNjoin(lastArg, data)
+                    sum1 = NjoinCalculator(lastArg, data)
                     if sum1["n_Scheme"] is not None:
                         PrintSumOfQueryCartesian(sum1, lastArg, data)
             elif isinstance(lastArg, Sigma):
@@ -719,11 +703,6 @@ def __main__():
     algebricExpression.append(Pis)
     algebricExpression.append(Sigmas)
     algebricExpression.append(Cartesians)
-
-    # We clear the the out side brackets from the conditions in sigma
-    algebricExpression[1] = clearOutSideBrackets(algebricExpression[1]) 
-    if canExecuteRule4(algebricExpression):
-          rule4(algebricExpression)
 
     queries = runRulesRandomly(algebricExpression, tableR, tableS)
     CalculateQuery(queries)
