@@ -715,10 +715,6 @@ def __main__():
     algebricExpression.append(Cartesians)
 
     queries = runRulesRandomly(algebricExpression, tableR, tableS)
-    printAlgebricExpression(queries[0])
-    printAlgebricExpression(queries[1])
-    printAlgebricExpression(queries[2])
-    printAlgebricExpression(queries[3])
     CalculateQuery(queries)
 
 
