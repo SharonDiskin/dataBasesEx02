@@ -1,4 +1,3 @@
-
 import copy
 import random
 
@@ -97,6 +96,13 @@ def checkIfMainAnd(firstSigma, secondSigma) -> bool:
     return str(firstSigma).count("(") == str(firstSigma).count(")") and \
            str(secondSigma).count(")") == str(secondSigma).count("(")
 
+def clearOutSideBrackets(sigma) -> Sigma:
+    sigmaWithNoOutSideBrackets = Sigma()
+    for condition in sigma.conditionsList:
+        while(condition[0]=="(" and condition[-1]==")"):
+            condition = condition[1:-1]
+        sigmaWithNoOutSideBrackets.conditionsList.append(condition)
+    return sigmaWithNoOutSideBrackets
 
 def deleteBracket(sigma) -> str:
     sigma = str(sigma).strip()
@@ -154,7 +160,7 @@ def isValidChoice(userChoice) -> bool:
 
 
 def canExecuteRule4(algebricExpression) -> bool:
-    # We lay on the assumption that is the sigma block contains at least one "AND" we can use rule 4
+    # We lay on the assumption that if the sigma block contains at least one "AND" we can use rule 4
     for item in algebricExpression:
         if type(item) is Sigma:
             for condition in item.conditionsList:
@@ -242,7 +248,7 @@ def canExecuteRule11b(algebricExpression) -> bool:
             if i + 1 < len(algebricExpression):
                 if type(algebricExpression[i + 1]) is Cartesian:
                     if isTheRightConditionFor11b(algebricExpression[i].conditionsList):
-                        algebricExpression.pop(i)
+                        algebricExpression.pop(i) # We are taking out the sigma with the condition, it is no longer needed
                         return True
 
     return False
@@ -714,8 +720,14 @@ def __main__():
     algebricExpression.append(Sigmas)
     algebricExpression.append(Cartesians)
 
+    # We clear the the out side brackets from the conditions in sigma
+    algebricExpression[1] = clearOutSideBrackets(algebricExpression[1]) 
+    if canExecuteRule4(algebricExpression):
+          rule4(algebricExpression)
+
     queries = runRulesRandomly(algebricExpression, tableR, tableS)
     CalculateQuery(queries)
+
 
 
 __main__()
