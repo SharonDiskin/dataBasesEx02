@@ -1,4 +1,4 @@
-#yalla
+
 import copy
 import random
 
